@@ -147,10 +147,12 @@ end
       included_associations = filter(associations.keys)
       associations.each_with_object({}) do |(name, association), hash|
         if included_associations.include? name
+          associated_data = Array(send(association.name))
+          serializer = association.build_serializer(associated_data, scope: scope)
           if association.embed_in_root?
-            associated_data = Array(send(association.name))
-            hash[association.root_key] = serialize(association, associated_data)
+            hash[association.root_key] = serializer.serializable_object
           end
+          hash.merge!(serializer.embedded_in_root_associations)
         end
       end
     end
